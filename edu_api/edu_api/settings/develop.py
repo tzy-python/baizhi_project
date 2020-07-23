@@ -47,6 +47,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    'django_filters',
+    'ckeditor', #富文本编辑器
+    'ckeditor_uploader', #富文本编辑器的上传模块
     # x admin配置
     'xadmin',
     'crispy_forms',
@@ -54,6 +57,10 @@ INSTALLED_APPS = [
 
     'home',
     'user',
+    'course',
+    'cart',
+    'order',
+    'payments',
 ]
 
 MIDDLEWARE = [
@@ -96,7 +103,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'edu_api2',
-        'HOST':'localhost',
+        'HOST':'127.0.0.1',
         'USER':'root',
         'PASSWORD':'123456',
         'PORT':3306,
@@ -136,7 +143,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -208,7 +215,7 @@ REST_FRAMEWORK = {
 # jwt配置
 JWT_AUTH = {
     # 有效时间
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=300),
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=300000),
     # 自定义jwt返回值的格式方法
     'JWT_RESPONSE_PAYLOAD_HANDLER': 'user.utils.jwt_response_payload_handler',
 }
@@ -218,3 +225,67 @@ AUTH_USER_MODEL = "user.UserInfo"
 AUTHENTICATION_BACKENDS = [
     'user.utils.UserAuthBackend',
 ]
+
+
+# django 连接redis设置
+CACHES = {
+    # 默认库
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # 连接的redis所在服务的端口以及ip
+        "LOCATION": "redis://127.0.0.1:6379/0",
+        # 使用客户端的方式
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+
+    # 验证码储存位置
+    "sms_code": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # 连接的redis所在服务的端口以及ip
+        "LOCATION": "redis://127.0.0.1:6379/10",
+        # 使用客户端的方式
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+
+    # 购物车储存位置
+    "cart": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # 连接的redis所在服务的端口以及ip
+        "LOCATION": "redis://127.0.0.1:6379/9",
+        # 使用客户端的方式
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+}
+
+# devlope 配置
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',	# 展示哪些工具栏
+        'height': 300,	# 编辑器的高度
+        # 'width': 300,
+    },
+}
+
+CKEDITOR_UPLOAD_PATH = ''
+
+
+# 支付宝配置信息
+ALIAPY_CONFIG = {
+    # "gateway_url": "https://openapi.alipay.com/gateway.do?", # 真实支付宝网关地址
+    "gateway_url": "https://openapi.alipaydev.com/gateway.do?",  # 沙箱支付宝网关地址
+    "appid": "2016102200738366",
+    "app_notify_url": None,
+    "app_private_key_path": open(os.path.join(BASE_DIR, "apps/payments/keys/app_private_key.pem")).read(),
+    "alipay_public_key_path": open(os.path.join(BASE_DIR, "apps/payments/keys/app_private_key.pem")).read(),
+    "sign_type": "RSA2",
+    "debug": False,
+    # "return_url": "http://www.baizhistore.cn:8080/payments/result",  # 同步回调地址
+    "return_url": "http://localhost:8080/payments/result",  # 同步回调地址
+    "notify_url": "http://api.baizhishop.com:8000/payments/result",  # 异步结果通知
+}

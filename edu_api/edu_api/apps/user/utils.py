@@ -2,6 +2,7 @@ from django.contrib.auth.backends import ModelBackend
 from django.db.models import Q
 from user.models import UserInfo
 
+
 # 定义了jwt的返回值
 def jwt_response_payload_handler(token, user=None, request=None):
     return {
@@ -18,6 +19,7 @@ def get_user_by_account(account):
         return None
     else:
         return user
+
 
 class UserAuthBackend(ModelBackend):
 

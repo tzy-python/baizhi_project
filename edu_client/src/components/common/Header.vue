@@ -8,7 +8,7 @@
                 <ul class="nav full-left">
                     <li v-for="(nav,key) in nav_list" :key="key">
                         <span v-if="nav.is_site"><a :href="nav.link">{{nav.title}}</a></span>
-                        <span v-else><router-link :to="nav.link">{{nav.title}}</router-link></span>
+                        <span v-else><router-link to="/python">{{nav.title}}</router-link></span>
                     </li>
 <!--                    <li><span>大数据成功法门</span></li>-->
 <!--                    <li><span>Python全栈</span></li>-->
@@ -18,7 +18,7 @@
                 <div class="login-bar full-right" v-if="token">
                     <div class="shop-cart full-left">
                         <img src="/static/image/" alt="">
-                        <span><router-link to="/cart">购物车</router-link></span>
+                        <span><router-link to="/cart">{{this.$store.state.cart_length}}购物车</router-link></span>
                     </div>
                     <div class="login-box full-left">
                         <router-link to="/home/">个人中心</router-link>
@@ -36,7 +36,7 @@
                     <div class="login-box full-left">
                         <router-link to="/home/login/">登录</router-link>
                         &nbsp;|&nbsp;
-                        <span>注册</span>
+                        <router-link to="/user/register/">注册</router-link>
                     </div>
                 </div>
             </div>

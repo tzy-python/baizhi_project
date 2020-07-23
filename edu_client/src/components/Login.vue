@@ -8,10 +8,10 @@
             </div>
             <div class="login_box">
                 <div class="title">
-                    <span>密码登录</span>
-                    <span>短信登录</span>
+                    <span @click="pwd_login">密码登录</span>
+                    <span @click="msg_login">短信登录</span>
                 </div>
-                <div class="inp" v-if="">
+                <div class="inp" v-if="sta">
                     <input type="text" placeholder="用户名 / 手机号码" class="user" v-model="username">
                     <input type="password" name="" class="pwd" placeholder="密码" v-model="password">
                     <div id="geetest1"></div>
@@ -27,11 +27,11 @@
                         <router-link to="/user/register/">立即注册</router-link>
                     </p>
                 </div>
-                <div class="inp" v-show="">
-                    <input type="text" placeholder="手机号码" class="user">
-                    <input type="text" class="pwd" placeholder="短信验证码">
-                    <button id="get_code" class="btn btn-primary">获取验证码</button>
-                    <button class="login_btn">登录</button>
+                <div class="inp" v-else>
+                    <input type="text" placeholder="手机号码" v-model="mobile" @blur="check_mobile" class="user">
+                    <input type="text" class="pwd" placeholder="短信验证码" v-model="sms">
+                    <button id="get_code" class="btn btn-primary" @click="get_code">{{sms_text}}</button>
+                    <button class="login_btn" @click="login_by_code">登录</button>
                     <span class="go_login">没有账号
                     <router-link to="/user/register/">立即注册</router-link>
                 </span>
@@ -49,6 +49,11 @@
                 username: '',
                 password: '',
                 rem_me:false,
+                sta:true,
+                mobile:"",
+                sms:'',
+                sms_text:"点击发送验证码",
+                sms_flag:false, // 能否再次发送短信
             }
         },
         methods:{
@@ -134,6 +139,93 @@
                 }).catch(error=>{
                     console.log(error.response);
                     this.$message.error("用户名或密码错误")
+                })
+            },
+
+            pwd_login(){
+                this.sta = true
+            },
+            msg_login(){
+                this.sta = false
+            },
+
+            login_by_code(){
+                this.$axios({
+                    url:this.$settings.HOST+'user/smslogin/',
+                    method:'post',
+                    data:{
+                        mobile: this.mobile,
+                        sms:this.sms,
+                    }
+                }).then(res=>{
+                    console.log(res.data);
+                    localStorage.removeItem("user_token");
+                    localStorage.removeItem("user_id");
+                    localStorage.removeItem("username");
+                    sessionStorage.user_id = res.data.id;
+                    sessionStorage.username = res.data.username;
+                    sessionStorage.user_token = res.data.token;
+
+                    let _this = this;
+                    this.$alert("登录成功","百知教育",{
+                        callback(){
+                            _this.$router.push('/')
+                        }
+                    })
+                }).catch(error=>{
+                    console.log(error.response)
+                    this.$message.error("登录失败")
+                })
+            },
+
+            check_mobile(){
+                if (!/1[356789]\d{9}/.test(this.mobile)) {
+                    this.$message.error("手机号格式有误");
+                    return false
+                }
+            },
+
+            get_code(){
+                if (!/1[356789]\d{9}/.test(this.mobile)) {
+                    this.$alert("手机号格式有误","警告");
+                    return false
+                }
+
+                this.$axios({
+                    url: this.$settings.HOST + "user/sms/" + `${this.mobile}`,
+                    method: "get",
+                }).then(response => {
+                    console.log(response.data);
+
+                    // 成功则可以再次发送短信
+                    this.sms_flag = true;
+                    let interval = 60;
+                    let timer = setInterval(() => {
+                        if (interval <= 1) {
+                            // 停止倒计时  允许发送短信
+                            clearInterval(timer);
+                            this.sms_flag = false; // 设置允许发送短信 false
+                            this.sms_text = `点击发送验证码`
+                        } else {
+                            interval--;
+                            this.sms_text = `${interval}s后可以点击发送`;
+                        }
+                    }, 1000)
+
+                }).catch(error => {
+                    console.log(error.response);
+                    this.$message.error("当前手机号已经发送过短信")
+                })
+            },
+
+            login(){
+                this.$axios({
+                    url:this.$settings.HOST+"user/login/"+`${this.mobile}`,
+                    method:"get",
+                }).then(res=>{
+                    console.log(res.data)
+                }).catch(error=>{
+                    console.log(error.response)
                 })
             },
         },
